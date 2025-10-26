@@ -1,19 +1,20 @@
-#include <iostream> 
+#include <iostream>
+#include <stdio.h>        // Required for printf
+#include <cuda_runtime.h> // <-- THIS IS THE FIX
 
- __global__ void helloWorld() { 
+__global__ void helloWorld()
+{
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  printf("Hello, World! Thread %d\n", tid);
+}
 
-   int tid = threadIdx.x + blockIdx.x * blockDim.x; 
+int main()
+{
+  // Launch the kernel with 1 block and 10 threads
+  helloWorld<<<1, 10>>>();
 
-   printf("Hello, World! Thread %d\n", tid); 
+  // Wait for the GPU to finish before letting the CPU exit
+  cudaDeviceSynchronize();
 
- } 
-
- int main() { 
-
-   helloWorld<<<1, 10>>>();
-
-   cudaDeviceSynchronize();
-
-   return 0; 
-
- } 
+  return 0;
+}
