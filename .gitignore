@@ -5,3 +5,6 @@ build
 *.log
 *.so
 *.pyc
+*.exe
+*.exp
+*.lib
