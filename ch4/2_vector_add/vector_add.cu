@@ -16,7 +16,7 @@ void vectorAddCpu(float *A, float *B, float *C, int N) {
 }
 
 int main() {
-    int N = 100'000'000;
+    int N = 300'000'000;
     size_t size = N * sizeof(float);
 
     float *h_A = (float *)malloc(size);
