@@ -50,7 +50,7 @@ bool checkPrimeCpu(long long num) {
 
 int main() {
     long long start =  100'001LL; // must start with odd
-    long long end   =  190'001LL;
+    long long end   =  900'001LL;
 
     int threadsPerBlock = 256;
     int totalNumbers = (end - start) / 2 + 1;
