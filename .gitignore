@@ -8,3 +8,4 @@ build
 *.exe
 *.exp
 *.lib
+.idea
