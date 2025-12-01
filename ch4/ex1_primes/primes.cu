@@ -97,6 +97,23 @@ int main() {
     std::cout << "Time taken on CPU: " << std::fixed << cpuDuration.count() << " ms" << std::endl;
     std::cout << "speed up : " << cpuDuration.count() / gpuDuration << std::endl;
 
+    // Print first 42 primes found
+    std::cout << "\nFirst 42 primes found:" << std::endl;
+    int primesFound = 0;
+    for (int i = 0; i < totalNumbers && primesFound < 42; ++i) {
+        if (h_isPrime[i]) {
+            std::cout << h_primes[i];
+            primesFound++;
+            if (primesFound < 42 && primesFound % 7 == 0) {
+                std::cout << std::endl;
+            } else if (primesFound < 42) {
+                std::cout << ", ";
+            }
+        }
+    }
+    std::cout << std::endl << std::endl;
+
+    std::cout << "Verifying GPU results against CPU..." << std::endl;
     for (int i = 0; i < totalNumbers; ++i) {
         long long num = h_primes[i];
         bool isPrimeGpu = h_isPrime[i];
@@ -106,6 +123,7 @@ int main() {
             std::cout << "Mismatch for number " << num << ": GPU says " << isPrimeGpu << ", CPU says " << isPrimeCpu << std::endl;
         }
     }
+    std::cout << "Verification finished!" << std::endl << std::endl;
 
     // Cleanup memory
     cudaFree(d_primes);
