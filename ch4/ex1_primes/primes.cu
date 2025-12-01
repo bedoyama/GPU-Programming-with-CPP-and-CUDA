@@ -23,6 +23,9 @@ __global__ void checkPrimeKernel(long long *d_primes, bool *d_isPrime, long long
 
     bool isPrime = isPrimeCheck(num);
 
+    d_primes[tid] = num;
+    d_isPrime[tid] = isPrime;
+
     /*
     * for study purposes we can print the verification of each number
     */
@@ -81,6 +84,9 @@ int main() {
     cudaEventDestroy(startEvent);
     cudaEventDestroy(stopEvent);
 
+    cudaMemcpy(h_primes, d_primes, totalNumbers * sizeof(long long), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_isPrime, d_isPrime, totalNumbers * sizeof(bool), cudaMemcpyDeviceToHost);
+
     auto startTime = std::chrono::high_resolution_clock::now();
 
     for (long long num = start; num <= end; num += 2) {
@@ -92,6 +98,16 @@ int main() {
 
     std::cout << "Time taken on CPU: " << std::fixed << cpuDuration.count() << " ms" << std::endl;
     std::cout << "speed up : " << cpuDuration.count() / gpuDuration << std::endl;
+
+    for (int i = 0; i < totalNumbers; ++i) {
+        long long num = h_primes[i];
+        bool isPrimeGpu = h_isPrime[i];
+        bool isPrimeCpu = checkPrimeCpu(num);
+
+        if (isPrimeGpu != isPrimeCpu) {
+            std::cout << "Mismatch for number " << num << ": GPU says " << isPrimeGpu << ", CPU says " << isPrimeCpu << std::endl;
+        }
+    }
 
     return 0;
 }
