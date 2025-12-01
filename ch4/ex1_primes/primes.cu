@@ -2,31 +2,26 @@
 #include <iostream>
 #include <chrono>
 
+__device__ bool isPrimeCheck(long long num) {
+    if (num <= 1) return false;
+    if (num == 2) return true;
+    if (num % 2 == 0) return false;
+
+    for (long long i = 3; i * i <= num; i += 2) {
+        if (num % i == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 __global__ void checkPrimeKernel(long long *d_primes, bool *d_isPrime, long long start, long long end) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     long long num = start + (tid * 2);
-    bool isPrime = true;
-    if (num <= 1) {
-        isPrime = false;
-        return;
-    }
-    if (num == 2) {
-        isPrime = true;
-        return;
-    } 
-    if (num % 2 == 0) {
-        isPrime = false;
-        return;
-    }
+
     if (num > end) return;
 
-    
-    for (long long i = 3; i * i <= num; i += 2) {
-        if (num % i == 0) {
-            isPrime = false;
-            break;
-        }
-    }
+    bool isPrime = isPrimeCheck(num);
 
     /*
     * for study purposes we can print the verification of each number
