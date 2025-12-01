@@ -59,11 +59,9 @@ int main() {
 
     long long * d_primes;
     cudaMalloc((void**)&d_primes, totalNumbers * sizeof(long long));
-    cudaMemset(d_primes, 0, totalNumbers * sizeof(long long));
 
     bool * d_isPrime;
     cudaMalloc((void**)&d_isPrime, totalNumbers * sizeof(bool));
-    cudaMemset(d_isPrime, 0, totalNumbers * sizeof(bool));
 
     cudaEvent_t startEvent, stopEvent;
     cudaEventCreate(&startEvent);
@@ -108,6 +106,12 @@ int main() {
             std::cout << "Mismatch for number " << num << ": GPU says " << isPrimeGpu << ", CPU says " << isPrimeCpu << std::endl;
         }
     }
+
+    // Cleanup memory
+    cudaFree(d_primes);
+    cudaFree(d_isPrime);
+    free(h_primes);
+    free(h_isPrime);
 
     return 0;
 }
