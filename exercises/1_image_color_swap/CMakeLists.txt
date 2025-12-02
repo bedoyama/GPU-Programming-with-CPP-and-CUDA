@@ -14,7 +14,10 @@ add_executable(color_swap color_swap.cu)
 add_executable(color_swap_randomized color_swap_randomized.cu)
 
 # Set output directory for the executables
-set_target_properties(color_swap color_swap_randomized PROPERTIES
+set_target_properties(color_swap PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+set_target_properties(color_swap_randomized PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
