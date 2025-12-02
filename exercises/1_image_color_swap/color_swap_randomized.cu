@@ -152,12 +152,16 @@ int main(int argc, char *argv[]) {
     std::string base_name = (last_dot != std::string::npos) ? filename.substr(0, last_dot) : filename;
     extension = (last_dot != std::string::npos) ? filename.substr(last_dot) : ".jpg";
     
-    // Create output directory if it doesn't exist
+    // Create output directory structure if it doesn't exist
     mkdir(output_dir.c_str(), 0755);
+    std::string gpu_out_dir = output_dir + "gpu_out/";
+    std::string cpu_out_dir = output_dir + "cpu_out/";
+    mkdir(gpu_out_dir.c_str(), 0755);
+    mkdir(cpu_out_dir.c_str(), 0755);
     
-    // Generate output file paths
-    std::string output_path_gpu = output_dir + base_name + "_randomized_gpu" + extension;
-    std::string output_path_cpu = output_dir + base_name + "_randomized_cpu" + extension;
+    // Generate output file paths with organized folder structure
+    std::string output_path_gpu = gpu_out_dir + base_name + "_randomized_gpu" + extension;
+    std::string output_path_cpu = cpu_out_dir + base_name + "_randomized_cpu" + extension;
     
     std::cout << "========================================== " << std::endl;
     std::cout << "CUDA Randomized Color Channel Mixing" << std::endl;
