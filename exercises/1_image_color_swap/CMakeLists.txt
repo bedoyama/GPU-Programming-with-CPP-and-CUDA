@@ -1,0 +1,19 @@
+cmake_minimum_required(VERSION 3.10)
+project(color_swap CUDA CXX)
+
+# Enable C++11 standard
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CUDA_STANDARD 11)
+
+# Add executable
+add_executable(color_swap color_swap.cu)
+
+# Set output directory for the executable
+set_target_properties(color_swap PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+# Note: This project uses stb_image.h and stb_image_write.h
+# Make sure to download the full implementations from:
+# https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+# https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
