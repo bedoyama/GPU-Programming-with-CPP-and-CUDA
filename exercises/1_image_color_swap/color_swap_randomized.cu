@@ -67,36 +67,60 @@ void randomizedChannelMixCpu(unsigned char *input, unsigned char *output,
     }
 }
 
-// Generate random weights that sum to 1.0 for each output channel
-void generateRandomWeights(float *weights) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
+// Generate random coefficients that are applied cyclically to each output channel
+// newR = c1*R + c2*G + c3*B
+// newG = c1*G + c2*B + c3*R  (coefficients shift)
+// newB = c1*B + c2*R + c3*G  (coefficients shift again)
+void generateRandomWeights(float *weights, bool use_fixed_seed = false) {
+    std::mt19937 gen;
+    if (use_fixed_seed) {
+        gen.seed(42);  // Fixed seed for consistent results
+    } else {
+        std::random_device rd;
+        gen.seed(rd()); // True randomness
+    }
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
     
-    // For each output channel (R, G, B)
+    // Generate one set of random coefficients [c1, c2, c3]
+    float coeffs[3];
+    float sum = 0.0f;
+    
+    // Generate random coefficients
+    for (int i = 0; i < 3; i++) {
+        coeffs[i] = dist(gen);
+        sum += coeffs[i];
+    }
+    
+    // Normalize so they sum to 1.0
+    for (int i = 0; i < 3; i++) {
+        coeffs[i] = coeffs[i] / sum;
+    }
+    
+    // Apply coefficients cyclically to each output channel
     for (int out_ch = 0; out_ch < 3; out_ch++) {
-        float w[3];
-        float sum = 0.0f;
-        
-        // Generate random weights
-        for (int i = 0; i < 3; i++) {
-            w[i] = dist(gen);
-            sum += w[i];
-        }
-        
-        // Normalize so they sum to 1.0
-        for (int i = 0; i < 3; i++) {
-            weights[out_ch * 3 + i] = w[i] / sum;
+        for (int in_ch = 0; in_ch < 3; in_ch++) {
+            // Cyclic mapping: output channel shifts which coefficient applies to which input
+            int coeff_idx = (in_ch + out_ch) % 3;
+            weights[out_ch * 3 + in_ch] = coeffs[coeff_idx];
         }
     }
 }
 
-void printWeights(float *weights) {
+void printWeights(float *weights, bool use_fixed_seed = false) {
     const char* channel_names[] = {"R", "G", "B"};
     
-    std::cout << "Random weight matrix:" << std::endl;
-    std::cout << "  Output channels computed as weighted sum of input channels:" << std::endl;
-    std::cout << std::fixed << std::setprecision(3);
+    // First show the base coefficients
+    std::cout << "Cyclic coefficient pattern (coefficients shift for each output channel):" << std::endl;
+    if (use_fixed_seed) {
+        std::cout << "  Using FIXED SEED (seed=42) for consistent results" << std::endl;
+    } else {
+        std::cout << "  Using RANDOM SEED for unique results each run" << std::endl;
+    }
+    std::cout << "  Base coefficients: [c1=" << std::fixed << std::setprecision(3) 
+              << weights[0] << ", c2=" << weights[1] << ", c3=" << weights[2] << "]" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "Applied cyclically to output channels:" << std::endl;
     
     for (int out_ch = 0; out_ch < 3; out_ch++) {
         std::cout << "  " << channel_names[out_ch] << "_out = ";
@@ -113,16 +137,35 @@ void printWeights(float *weights) {
 }
 
 int main(int argc, char *argv[]) {
+    // Parse command line arguments
+    bool use_fixed_seed = false;
+    const char *input_path = nullptr;
+    
     // Check if input path is provided as parameter
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <input_image_path>" << std::endl;
-        std::cerr << "Example: " << argv[0] << " ../input_data/image01.jpg" << std::endl;
-        std::cerr << "         " << argv[0] << " /path/to/your/image.jpg" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <input_image_path> [--fixed-seed]" << std::endl;
+        std::cerr << "Options:" << std::endl;
+        std::cerr << "  --fixed-seed    Use fixed seed for consistent results (for testing)" << std::endl;
+        std::cerr << "Examples:" << std::endl;
+        std::cerr << "  " << argv[0] << " ../input_data/image01.jpg" << std::endl;
+        std::cerr << "  " << argv[0] << " ../input_data/image01.jpg --fixed-seed" << std::endl;
         return 1;
     }
     
-    // Get input path from command line parameter
-    const char *input_path = argv[1];
+    // Parse arguments
+    for (int i = 1; i < argc; i++) {
+        std::string arg(argv[i]);
+        if (arg == "--fixed-seed") {
+            use_fixed_seed = true;
+        } else if (input_path == nullptr) {
+            input_path = argv[i];
+        }
+    }
+    
+    if (input_path == nullptr) {
+        std::cerr << "Error: No input image path provided" << std::endl;
+        return 1;
+    }
     
     // Generate output paths
     std::string input_str(input_path);
@@ -170,8 +213,8 @@ int main(int argc, char *argv[]) {
     
     // Generate random weights (3x3 matrix: 3 output channels, each from 3 input channels)
     float h_weights[9];
-    generateRandomWeights(h_weights);
-    printWeights(h_weights);
+    generateRandomWeights(h_weights, use_fixed_seed);
+    printWeights(h_weights, use_fixed_seed);
     
     // Load image
     int width, height, channels;
