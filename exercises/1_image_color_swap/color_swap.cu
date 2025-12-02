@@ -6,6 +6,9 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include <chrono>
+#include <string>
+#include <filesystem>
+#include <sys/stat.h>
 
 // CUDA kernel to swap color channels: R->G, G->B, B->R
 __global__ void swapColorChannelsKernel(unsigned char *input, unsigned char *output, int width, int height, int channels) {
@@ -49,15 +52,51 @@ void swapColorChannelsCpu(unsigned char *input, unsigned char *output, int width
 }
 
 int main(int argc, char *argv[]) {
-    // Input and output file paths
-    const char *input_path = "../input_data/image01.jpg";
-    const char *output_path_gpu = "output_gpu.jpg";
-    const char *output_path_cpu = "output_cpu.jpg";
-    
-    // Allow custom input path from command line
-    if (argc > 1) {
-        input_path = argv[1];
+    // Check if input path is provided as parameter
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <input_image_path>" << std::endl;
+        std::cerr << "Example: " << argv[0] << " ../input_data/image01.jpg" << std::endl;
+        std::cerr << "         " << argv[0] << " /path/to/your/image.jpg" << std::endl;
+        return 1;
     }
+    
+    // Get input path from command line parameter
+    const char *input_path = argv[1];
+    
+    // Generate output paths
+    std::string input_str(input_path);
+    std::string output_dir;
+    std::string filename;
+    std::string extension;
+    
+    // Extract directory and filename
+    size_t last_slash = input_str.find_last_of("/\\");
+    if (last_slash != std::string::npos) {
+        std::string input_dir = input_str.substr(0, last_slash + 1);
+        // Replace input_data with output_data
+        size_t input_data_pos = input_dir.find("input_data");
+        if (input_data_pos != std::string::npos) {
+            output_dir = input_dir.substr(0, input_data_pos) + "output_data/";
+        } else {
+            output_dir = input_dir + "output_data/";
+        }
+        filename = input_str.substr(last_slash + 1);
+    } else {
+        output_dir = "output_data/";
+        filename = input_str;
+    }
+    
+    // Extract name and extension
+    size_t last_dot = filename.find_last_of(".");
+    std::string base_name = (last_dot != std::string::npos) ? filename.substr(0, last_dot) : filename;
+    extension = (last_dot != std::string::npos) ? filename.substr(last_dot) : ".jpg";
+    
+    // Create output directory if it doesn't exist
+    mkdir(output_dir.c_str(), 0755);
+    
+    // Generate output file paths
+    std::string output_path_gpu = output_dir + base_name + "_modified_gpu" + extension;
+    std::string output_path_cpu = output_dir + base_name + "_modified_cpu" + extension;
     
     std::cout << "========================================== " << std::endl;
     std::cout << "CUDA Image Color Channel Swap" << std::endl;
@@ -134,7 +173,7 @@ int main(int argc, char *argv[]) {
     std::cout << "  GPU processing time: " << gpuTime << " ms" << std::endl;
     
     // Save GPU output
-    if (stbi_write_jpg(output_path_gpu, width, height, channels, h_output_gpu, 95)) {
+    if (stbi_write_jpg(output_path_gpu.c_str(), width, height, channels, h_output_gpu, 95)) {
         std::cout << "  GPU output saved to: " << output_path_gpu << std::endl;
     } else {
         std::cerr << "  Error: Could not save GPU output image" << std::endl;
@@ -152,7 +191,7 @@ int main(int argc, char *argv[]) {
     std::cout << "  CPU processing time: " << cpuTime.count() << " ms" << std::endl;
     
     // Save CPU output
-    if (stbi_write_jpg(output_path_cpu, width, height, channels, h_output_cpu, 95)) {
+    if (stbi_write_jpg(output_path_cpu.c_str(), width, height, channels, h_output_cpu, 95)) {
         std::cout << "  CPU output saved to: " << output_path_cpu << std::endl;
     } else {
         std::cerr << "  Error: Could not save CPU output image" << std::endl;

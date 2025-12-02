@@ -13,3 +13,7 @@ build
 # Exclude input data directories
 input_data/
 **/input_data/
+
+# Exclude output data directories
+output_data/
+**/output_data/
