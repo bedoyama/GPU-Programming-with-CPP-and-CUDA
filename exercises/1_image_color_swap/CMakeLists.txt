@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
-project(color_swap CUDA CXX)
+project(image_color_processing CUDA CXX)
+
+# This project contains two CUDA image processing programs:
+# 1. color_swap - Simple deterministic color channel swapping (R->G, G->B, B->R)  
+# 2. color_swap_randomized - Weighted color mixing using cyclic coefficient patterns
 
 # Enable C++11 standard
 set(CMAKE_CXX_STANDARD 11)
