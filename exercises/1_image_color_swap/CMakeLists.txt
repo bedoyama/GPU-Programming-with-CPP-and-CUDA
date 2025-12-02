@@ -9,11 +9,12 @@ set(CMAKE_CUDA_STANDARD 11)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-unused-variable")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --diag-suppress 550")
 
-# Add executable
+# Add executables
 add_executable(color_swap color_swap.cu)
+add_executable(color_swap_randomized color_swap_randomized.cu)
 
-# Set output directory for the executable
-set_target_properties(color_swap PROPERTIES
+# Set output directory for the executables
+set_target_properties(color_swap color_swap_randomized PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
