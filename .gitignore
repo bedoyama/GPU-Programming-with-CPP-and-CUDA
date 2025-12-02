@@ -9,3 +9,7 @@ build
 *.exp
 *.lib
 .idea
+
+# Exclude input data directories
+input_data/
+**/input_data/
